@@ -79,7 +79,9 @@ public abstract class AbstractPlayableLoadingCommand extends AbstractSourceDecid
     public void doRun() throws Exception {
         AudioManager audioManager = Aiode.get().getAudioManager();
 
-        if (UrlValidator.getInstance().isValid(getCommandInput())) {
+        UrlValidator uv = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS);
+
+        if (uv.isValid(getCommandInput())) {
             loadUrlItems(audioManager);
         } else if (SpotifyUri.isSpotifyUri(getCommandInput())) {
             loadSpotifyUri(audioManager);
@@ -145,7 +147,8 @@ public abstract class AbstractPlayableLoadingCommand extends AbstractSourceDecid
             throw new NoResultsFoundException(String.format("No local playlist found for '%s'", getCommandInput()));
         }
 
-        List<Object> items = runWithCredentials(() -> playlist.getTracks(getContext().getSpotifyApi()));
+        List<Object> items = playlist.getTracks(getContext().getSpotifyApi());
+        // List<Object> items = runWithCredentials(() -> playlist.getTracks(getContext().getSpotifyApi()));
 
         if (items.isEmpty()) {
             throw new NoResultsFoundException("Playlist is empty");

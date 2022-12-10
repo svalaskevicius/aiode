@@ -51,13 +51,13 @@
            description="Lists all available commands and their descriptions or provides help with a specific command.">
     <example title="Get help with the play command">%1$shelp play</example>
   </command>
-  <command identifier="login"
-           implementation="net.robinfriedli.aiode.command.commands.spotify.LoginCommand"
-           requiresInput="false"
-           category="SPOTIFY"
-           description="Login to spotify. This sends you a link to the spotify login page which then redirects to the aiode callback.">
-    <example title="Login to Spotify.">%1$slogin</example>
-  </command>
+  <!-- <command identifier="login" -->
+  <!--          implementation="net.robinfriedli.aiode.command.commands.spotify.LoginCommand" -->
+  <!--          requiresInput="false" -->
+  <!--          category="SPOTIFY" -->
+  <!--          description="Login to spotify. This sends you a link to the spotify login page which then redirects to the aiode callback."> -->
+  <!--   <example title="Login to Spotify.">%1$slogin</example> -->
+  <!-- </command> -->
   <command identifier="play"
            implementation="net.robinfriedli.aiode.command.commands.playback.PlayCommand"
            requiresInput="false"
@@ -138,16 +138,16 @@
            requiresInput="false"
            category="SEARCH"
            description="Search for YouTube and Spotify tracks or playlists and local playlists or list all local playlists. Spotify search queries support the Spotify query syntax (i.e. the &quot;artist:&quot;, &quot;album:&quot; and &quot;track:&quot; filters). Which source is used is decided by the used arguments or the default source and default list source properties.">
-    <argument identifier="spotify" requiresInput="true" description="Search for Spotify track or playlist. This supports Spotify query syntax (i.e. the filters &quot;artist:&quot;, &quot;album:&quot;, etc.). This is the default option when searching for tracks.">
-      <excludes argument="youtube"/>
-    </argument>
+    <!-- <argument identifier="spotify" requiresInput="true" description="Search for Spotify track or playlist. This supports Spotify query syntax (i.e. the filters &quot;artist:&quot;, &quot;album:&quot;, etc.). This is the default option when searching for tracks."> -->
+    <!--   <excludes argument="youtube"/> -->
+    <!-- </argument> -->
     <argument identifier="youtube" requiresInput="true" description="Search for YouTube video or playlist.">
-      <excludes argument="spotify"/>
+      <!-- <excludes argument="spotify"/> -->
     </argument>
     <argument identifier="list" description="Search for a playlist."/>
     <argument identifier="local" description="Search for a local playlist or list all of them. This is default when searching for lists.">
       <excludes argument="youtube"/>
-      <excludes argument="spotify"/>
+      <!-- <excludes argument="spotify"/> -->
       <requires argument="list"/>
     </argument>
     <argument identifier="own" description="Limit search to Spotify tracks or playlists in the current user's library. This requires a Spotify login.">
@@ -212,13 +212,13 @@
            requiresInput="false"
            category="PLAYBACK"
            description="Stop playback and empty the queue."/>
-  <command identifier="upload"
-           implementation="net.robinfriedli.aiode.command.commands.spotify.UploadCommand"
-           requiresInput="true"
-           category="SPOTIFY"
-           description="Upload the items from a local list to a new Spotify playlist. This ignores elements that are not Spotify tracks.">
-    <example title="Upload playlist &quot;my list&quot;">%1$supload my list</example>
-  </command>
+  <!-- <command identifier="upload" -->
+  <!--          implementation="net.robinfriedli.aiode.command.commands.spotify.UploadCommand" -->
+  <!--          requiresInput="true" -->
+  <!--          category="SPOTIFY" -->
+  <!--          description="Upload the items from a local list to a new Spotify playlist. This ignores elements that are not Spotify tracks."> -->
+  <!--   <example title="Upload playlist &quot;my list&quot;">%1$supload my list</example> -->
+  <!-- </command> -->
   <command identifier="permission"
            implementation="net.robinfriedli.aiode.command.commands.general.PermissionCommand"
            requiresInput="false"
@@ -320,11 +320,11 @@
     <example title="Deny role 'rookie' from using any arguments of command 'preset'">%1$spermission %2$sdeny preset %2$sargument %2$sfor rookie</example>
     <example title="Grant all arguments to role 'manager'">%1$spermission %2$sgrant %2$scategory command %2$sargument %2$sto manager</example>
   </command>
-  <command identifier="logout"
-           implementation="net.robinfriedli.aiode.command.commands.spotify.LogoutCommand"
-           requiresInput="false"
-           category="SPOTIFY"
-           description="Log out from Spotify."/>
+  <!-- <command identifier="logout" -->
+  <!--          implementation="net.robinfriedli.aiode.command.commands.spotify.LogoutCommand" -->
+  <!--          requiresInput="false" -->
+  <!--          category="SPOTIFY" -->
+  <!--          description="Log out from Spotify."/> -->
   <command identifier="analytics"
            implementation="net.robinfriedli.aiode.command.commands.general.AnalyticsCommand"
            requiresInput="false"

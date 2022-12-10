@@ -78,18 +78,19 @@ public class SpotifyInvoker extends BaseInvoker implements FunctionInvoker<Spoti
 
     @Override
     public <E> E invoke(@NotNull Mode mode, @NotNull Callable<E> callable) {
-        if (login != null) {
-            mode = mode.with(new SpotifyUserAuthorizationMode(login, spotifyApi));
-        } else {
-            mode = mode.with(new SpotifyAuthorizationMode(spotifyApi));
-        }
-
-        if (market != null) {
-            mode = mode.with(new SpotifyMarketMode(market));
-        }
-
+        // if (login != null) {
+        //     mode = mode.with(new SpotifyUserAuthorizationMode(login, spotifyApi));
+        // } else {
+        //     mode = mode.with(new SpotifyAuthorizationMode(spotifyApi));
+        // }
+        //
+        // if (market != null) {
+        //     mode = mode.with(new SpotifyMarketMode(market));
+        // }
+        //
         try {
-            return super.invoke(mode, callable);
+        return callable.call();
+        //     return super.invoke(mode, callable);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
