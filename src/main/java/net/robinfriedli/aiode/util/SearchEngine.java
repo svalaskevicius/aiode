@@ -29,7 +29,8 @@ import net.robinfriedli.jxp.api.XmlElement;
 import org.hibernate.Session;
 
 /**
- * class with static methods to search local playlists and other entities. For YouTube searches see {@link YouTubeService},
+ * class with static methods to search local playlists and other entities. For
+ * YouTube searches see {@link YouTubeService},
  * for Spotify see {@link SpotifyService}
  */
 public class SearchEngine {
@@ -41,10 +42,24 @@ public class SearchEngine {
         String searchName = Util.normalizeWhiteSpace(searchTerm).toLowerCase();
         QueryBuilderFactory queryBuilderFactory = Aiode.get().getQueryBuilderFactory();
         return queryBuilderFactory.find(Playlist.class)
-            .where((cb, root, query) -> cb.equal(cb.lower(root.get("name")), searchName))
-            .build(session)
-            .uniqueResultOptional()
-            .orElse(null);
+                .where((cb, root, query) -> cb.equal(cb.lower(root.get("name")), searchName))
+                .build(session)
+                .uniqueResultOptional()
+                .orElse(null);
+    }
+
+    @Nullable
+    public static List<Playlist> getLocalLists(Session session, boolean isPartitioned, String guildId) {
+        QueryBuilderFactory queryBuilderFactory = Aiode.get().getQueryBuilderFactory();
+        EntityQueryBuilder<Playlist> queryBuilder = queryBuilderFactory
+                .find(Playlist.class);
+        if (isPartitioned) {
+            queryBuilder.where((cb, root, query) -> cb.equal(root.get("guildId"), guildId));
+        }
+
+        return queryBuilder.skipInterceptors(PartitionedQueryInterceptor.class).build(session)
+                .getResultStream()
+                .collect(Collectors.toList());
     }
 
     @Nullable
@@ -52,29 +67,28 @@ public class SearchEngine {
         String searchName = Util.normalizeWhiteSpace(searchTerm).toLowerCase();
         QueryBuilderFactory queryBuilderFactory = Aiode.get().getQueryBuilderFactory();
         EntityQueryBuilder<Playlist> queryBuilder = queryBuilderFactory
-            .find(Playlist.class)
-            .where((cb, root, query) -> cb.equal(cb.lower(root.get("name")), searchName));
+                .find(Playlist.class)
+                .where((cb, root, query) -> cb.equal(cb.lower(root.get("name")), searchName));
         if (isPartitioned) {
             queryBuilder.where((cb, root, query) -> cb.equal(root.get("guildId"), guildId));
         }
 
-        return queryBuilder.skipInterceptors(PartitionedQueryInterceptor.class).build(session).uniqueResultOptional().orElse(null);
+        return queryBuilder.skipInterceptors(PartitionedQueryInterceptor.class).build(session).uniqueResultOptional()
+                .orElse(null);
     }
 
     public static Optional<StoredScript> searchScript(String identifier, String scriptUsageId, Session session) {
         QueryBuilderFactory queryBuilderFactory = Aiode.get().getQueryBuilderFactory();
         return queryBuilderFactory.find(StoredScript.class)
-            .where((cb, root, subQueryFactory) -> cb.and(
-                cb.equal(cb.lower(root.get("identifier")), Util.normalizeWhiteSpace(identifier).toLowerCase()),
-                cb.equal(
-                    root.get("scriptUsage"),
-                    subQueryFactory.createUncorrelatedSubQuery(StoredScript.ScriptUsage.class, "pk")
-                        .where((cb1, root1) -> cb1.equal(root1.get("uniqueId"), scriptUsageId))
-                        .build(session)
-                )
-            ))
-            .build(session)
-            .uniqueResultOptional();
+                .where((cb, root, subQueryFactory) -> cb.and(
+                        cb.equal(cb.lower(root.get("identifier")), Util.normalizeWhiteSpace(identifier).toLowerCase()),
+                        cb.equal(
+                                root.get("scriptUsage"),
+                                subQueryFactory.createUncorrelatedSubQuery(StoredScript.ScriptUsage.class, "pk")
+                                        .where((cb1, root1) -> cb1.equal(root1.get("uniqueId"), scriptUsageId))
+                                        .build(session))))
+                .build(session)
+                .uniqueResultOptional();
     }
 
     public static List<PlaylistItem> searchPlaylistItems(Playlist playlist, String searchTerm) {
@@ -85,7 +99,8 @@ public class SearchEngine {
         return xmlElement -> {
             LevenshteinDistance editDistance = LevenshteinDistance.getDefaultInstance();
             return xmlElement.hasAttribute(attribute)
-                && editDistance.apply(xmlElement.getAttribute(attribute).getValue().toLowerCase(), searchTerm.toLowerCase()) < MAX_LEVENSHTEIN_DISTANCE;
+                    && editDistance.apply(xmlElement.getAttribute(attribute).getValue().toLowerCase(),
+                            searchTerm.toLowerCase()) < MAX_LEVENSHTEIN_DISTANCE;
         };
     }
 
@@ -93,31 +108,36 @@ public class SearchEngine {
     public static Preset searchPreset(Session session, String name) {
         QueryBuilderFactory queryBuilderFactory = Aiode.get().getQueryBuilderFactory();
         Optional<Preset> optionalPreset = queryBuilderFactory.find(Preset.class)
-            .where((cb, root) -> cb.equal(cb.lower(root.get("name")), Util.normalizeWhiteSpace(name).toLowerCase()))
-            .build(session)
-            .uniqueResultOptional();
+                .where((cb, root) -> cb.equal(cb.lower(root.get("name")), Util.normalizeWhiteSpace(name).toLowerCase()))
+                .build(session)
+                .uniqueResultOptional();
 
         return optionalPreset.orElse(null);
     }
 
-    public static <E> List<E> getBestLevenshteinMatches(E[] objects, String searchTerm, Function<E, String> compareFunc) {
+    public static <E> List<E> getBestLevenshteinMatches(E[] objects, String searchTerm,
+            Function<E, String> compareFunc) {
         return getBestLevenshteinMatches(true, objects, searchTerm, compareFunc);
     }
 
-    public static <E> List<E> getBestLevenshteinMatches(boolean limitDistance, E[] objects, String searchTerm, Function<E, String> compareFunc) {
+    public static <E> List<E> getBestLevenshteinMatches(boolean limitDistance, E[] objects, String searchTerm,
+            Function<E, String> compareFunc) {
         return getBestLevenshteinMatches(limitDistance, Arrays.asList(objects), searchTerm, compareFunc);
     }
 
-    public static <E> List<E> getBestLevenshteinMatches(List<E> objects, String searchTerm, Function<E, String> compareFunc) {
+    public static <E> List<E> getBestLevenshteinMatches(List<E> objects, String searchTerm,
+            Function<E, String> compareFunc) {
         return getBestLevenshteinMatches(true, objects, searchTerm, compareFunc);
     }
 
-    public static <E> List<E> getBestLevenshteinMatches(boolean limitDistance, List<E> objects, String searchTerm, Function<E, String> compareFunc) {
+    public static <E> List<E> getBestLevenshteinMatches(boolean limitDistance, List<E> objects, String searchTerm,
+            Function<E, String> compareFunc) {
         LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
         Multimap<Integer, E> objectsWithDistance = HashMultimap.create();
 
         for (E object : objects) {
-            Integer editDistance = levenshteinDistance.apply(searchTerm.toLowerCase(), compareFunc.apply(object).toLowerCase());
+            Integer editDistance = levenshteinDistance.apply(searchTerm.toLowerCase(),
+                    compareFunc.apply(object).toLowerCase());
             if (!limitDistance || editDistance < MAX_LEVENSHTEIN_DISTANCE) {
                 objectsWithDistance.put(editDistance, object);
             }

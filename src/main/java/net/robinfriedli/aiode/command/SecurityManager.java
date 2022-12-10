@@ -125,9 +125,12 @@ public class SecurityManager {
      * @return true if the member is a bot admin, guild owner or has a role with {@link Permission#ADMINISTRATOR} rights
      */
     public boolean hasElevatedPermissions(Member member) {
+        // System.err.println("1 member: "+ member.getId() + " self: " +member.getGuild().getSelfMember().getId());
+        // System.err.println("2 member: "+ member.getUser().getId() + " self: " +member.getGuild().getSelfMember().getUser().getId());
         return isAdmin(member.getUser())
             || member.isOwner()
-            || member.getRoles().stream().anyMatch(role -> role.hasPermission(Permission.ADMINISTRATOR));
+            || member.getRoles().stream().anyMatch(role -> role.hasPermission(Permission.ADMINISTRATOR))
+            || member.getUser().getId().equals(member.getGuild().getSelfMember().getUser().getId());
     }
 
     /**
