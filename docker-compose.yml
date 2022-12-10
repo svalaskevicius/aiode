@@ -1,0 +1,30 @@
+version: "3.3"
+
+services:
+
+  sounds:
+    image: php:latest
+    volumes: 
+      - ../tabletop-rpg-music:/site:ro
+    ports: 
+      - '9899:80'
+    command: sh -c 'cd /site && php -S 0.0.0.0:80'
+
+  db:
+    image: postgres:alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: aiode
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - aiode_net
+    volumes:
+      - ./db-volume:/var/lib/postgresql/data:rw
+
+
+networks:
+  aiode_net:
+
