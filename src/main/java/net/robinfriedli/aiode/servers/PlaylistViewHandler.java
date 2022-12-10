@@ -7,17 +7,22 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.LoggerFactory;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import net.robinfriedli.aiode.Aiode;
+import net.robinfriedli.aiode.audio.AudioPlayback;
+import net.robinfriedli.aiode.audio.AudioPlayerSendHandler;
 import net.robinfriedli.aiode.command.AbstractCommand;
 import net.robinfriedli.aiode.command.CommandContext;
 import net.robinfriedli.aiode.command.CommandManager;
@@ -26,6 +31,7 @@ import net.robinfriedli.aiode.concurrent.CommandExecutionQueueManager;
 import net.robinfriedli.aiode.concurrent.ExecutionContext;
 import net.robinfriedli.aiode.concurrent.ThreadExecutionQueue;
 import net.robinfriedli.aiode.discord.GuildManager;
+import net.robinfriedli.aiode.discord.DiscordEntity.VoiceChannel;
 import net.robinfriedli.aiode.entities.Playlist;
 import net.robinfriedli.aiode.entities.PlaylistItem;
 import net.robinfriedli.aiode.exceptions.InvalidRequestException;
@@ -168,13 +174,13 @@ public class PlaylistViewHandler implements HttpHandler {
             listBuilder.append("<tr>").append(System.lineSeparator())
                     .append("<td>").append(i + 1).append("</td>").append(System.lineSeparator())
                     // TODO: ESCAPE THESE
-                    .append("<td><a href=\"/list?guildId=").append(esc(guildId)).append("&name=")
-                    .append(esc(item.getName()))
-                    .append("\">").append(esc(item.getName())).append("</a></td>").append(System.lineSeparator())
+                    .append("<td><a href=\"/list?guildId=").append(esc(guildId)).append("&runthis=")
+                    .append(esc(item.getName())).append("\">").append(esc(item.getName())).append("</a></td>")
+                    .append(System.lineSeparator())
                     .append("<td>").append(Util.normalizeMillis(item.getDuration())).append("</td>")
                     .append("<td>").append(item.getSize()).append("</td>")
-                    .append("<td><a href=\"/list?guildId=").append(esc(guildId)).append("&runthis=")
-                    .append(esc(item.getName())).append("\">PLAYLS</a></td>")
+                    .append("<td><a href=\"/list?guildId=").append(esc(guildId)).append("&name=")
+                    .append(esc(item.getName())).append("\">view</a></td>")
                     .append(System.lineSeparator())
                     .append("</tr>").append(System.lineSeparator());
         }
@@ -189,17 +195,33 @@ public class PlaylistViewHandler implements HttpHandler {
 
     private void runThis(String name, String guildId, Session session) {
         Guild guild = shardManager.getGuildById(guildId);
+
+        Member selfMember = guild.getSelfMember();
+        if (!selfMember.getVoiceState().inAudioChannel()) {
+            Optional<net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel> c = guild.getChannels().stream()
+                    .filter(c1 -> c1.getType() == ChannelType.VOICE && selfMember.hasAccess(c1))
+                    .map(c2 -> (net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel) c2)
+                    .filter(c3 -> c3.canTalk(selfMember) && !c3.getMembers().isEmpty())
+                    .findFirst();
+
+            if (c.isPresent()) {
+                AudioPlayback playback = guildManager.getContextForGuild(guild).getPlayback();
+                playback.setVoiceChannel(c.get());
+                guild.getAudioManager().setSendingHandler(new AudioPlayerSendHandler(playback.getAudioPlayer()));
+                guild.getAudioManager().openAudioConnection(c.get());
+            }
+        }
         CommandContext commandContext = new CommandContext(
                 guild,
                 guildManager.getContextForGuild(guild),
                 guild.getJDA(), // JDA jda,
-                guild.getSelfMember(), // Member member,
+                selfMember, // Member member,
                 "$script $invoke=playls " + name, // String message,
                 sessionFactory, // SessionFactory sessionFactory,
                 spotifyApiBuilder, // SpotifyApi.Builder spotifyApiBuilder,
                 "$script $invoke=playls " + name, // String commandBody,
                 (MessageChannelUnion) guildManager.getDefaultTextChannelForGuild(guild), // MessageChannelUnion
-                                                                                         // textChannel,
+                // textChannel,
                 false, // boolean isSlashCommand,
                 null // @Nullable InteractionHook interactionHook
         );
