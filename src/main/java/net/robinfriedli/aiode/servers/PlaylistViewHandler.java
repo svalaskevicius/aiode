@@ -172,7 +172,7 @@ public class PlaylistViewHandler implements HttpHandler {
         for (int i = 0; i < playlists.size(); i++) {
             Playlist item = playlists.get(i);
             listBuilder.append("<tr>").append(System.lineSeparator())
-                    .append("<td>").append(i + 1).append("</td>").append(System.lineSeparator())
+                    // .append("<td>").append(i + 1).append("</td>").append(System.lineSeparator())
                     // TODO: ESCAPE THESE
                     .append("<td><a href=\"/list?guildId=").append(esc(guildId)).append("&runthis=")
                     .append(esc(item.getName())).append("\">").append(esc(item.getName())).append("</a></td>")
